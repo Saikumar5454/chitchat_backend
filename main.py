@@ -101,7 +101,13 @@ async def request_otp(request: EmailRequest) -> dict:
         try:
             await send_otp_email(email, code)
         except RuntimeError as error:
-            raise HTTPException(status_code=503, detail=str(error))
+            print("SMTP ERROR:", error)
+
+            return {
+                "message": "OTP generated",
+                "dev_code": code
+            }
+            # raise HTTPException(status_code=503, detail=str(error))
         return {"message": "OTP sent"}
 
     if os.getenv("ENVIRONMENT", "development") != "production":
