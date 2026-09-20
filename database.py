@@ -2,11 +2,6 @@ import os
 
 import asyncpg
 
-# DATABASE_URL = os.getenv(
-#     "DATABASE_URL",
-#     "postgresql://postgres:postgres@localhost:5432/chatapp",
-# )
-
 
 
 
@@ -15,7 +10,7 @@ pool: asyncpg.Pool | None = None
 
 async def connect_db() -> None:
     global pool
-    pool = await asyncpg.create_pool(DATABASE_URL, min_size=1, max_size=10)
+    pool = await asyncpg.create_pool(os.getenv("DATABASE_URL"), min_size=1, max_size=10)
     async with pool.acquire() as connection:
         await connection.execute(
             """
