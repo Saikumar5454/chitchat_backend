@@ -10,8 +10,11 @@ pool: asyncpg.Pool | None = None
 
 async def connect_db() -> None:
     global pool
+    print("Connecting to database...")
     pool = await asyncpg.create_pool(os.getenv("DATABASE_URL"), min_size=1, max_size=10)
+    print("Database connected")
     async with pool.acquire() as connection:
+        print("Creating tables...")
         await connection.execute(
             """
             CREATE TABLE IF NOT EXISTS users (
@@ -47,6 +50,7 @@ async def connect_db() -> None:
                 ON messages (created_at DESC);
             """
         )
+        print("Tables created")
         await connection.execute(
             "ALTER TABLE messages ADD COLUMN IF NOT EXISTS recipient_id INTEGER REFERENCES users(id) ON DELETE CASCADE"
         )
