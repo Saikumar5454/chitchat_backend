@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+websoc/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Frontend
+client/node_modules/
+client/build/
+
+# Local tooling
+.vscode/

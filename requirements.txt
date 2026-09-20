@@ -1,0 +1,8 @@
+asyncpg==0.31.0
+fastapi==0.141.1
+python-socketio==5.16.4
+uvicorn[standard]==0.52.0
+sqlalchemy
+python-dotenv
+psycopg2-binary
+python-multipart
