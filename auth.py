@@ -101,6 +101,7 @@ async def send_otp_email(email: str, code: str) -> None:
         except smtplib.SMTPRecipientsRefused as error:
             raise RuntimeError("The recipient email address was refused by the SMTP server") from error
         except (OSError, smtplib.SMTPException) as error:
+            print("SMTP ERROR:", repr(error))
             raise RuntimeError(f"SMTP delivery failed: {error}") from error
 
     await to_thread(send_message)
