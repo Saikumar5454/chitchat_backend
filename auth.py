@@ -74,56 +74,90 @@ def smtp_is_configured() -> bool:
     )
 
 
-async def send_otp_email(email: str, code: str) -> None:
-    host = os.getenv("SMTP_HOST")
-    port = int(os.getenv("SMTP_PORT", "587"))
-    username = os.getenv("SMTP_USERNAME")
-    password = os.getenv("SMTP_PASSWORD")
-    sender = os.getenv("SMTP_FROM", username or "")
-    if not host or not sender:
-        raise RuntimeError("SMTP credentials are not configured")
+# async def send_otp_email(email: str, code: str) -> None:
+#     host = os.getenv("SMTP_HOST")
+#     port = int(os.getenv("SMTP_PORT", "587"))
+#     username = os.getenv("SMTP_USERNAME")
+#     password = os.getenv("SMTP_PASSWORD")
+#     sender = os.getenv("SMTP_FROM", username or "")
+#     if not host or not sender:
+#         raise RuntimeError("SMTP credentials are not configured")
 
-    message = EmailMessage()
-    message["Subject"] = "Your chat verification code"
-    message["From"] = sender
-    message["To"] = email
-    message.set_content(f"Your chat verification code is {code}. It expires in 5 minutes.")
+#     message = EmailMessage()
+#     message["Subject"] = "Your chat verification code"
+#     message["From"] = sender
+#     message["To"] = email
+#     message.set_content(f"Your chat verification code is {code}. It expires in 5 minutes.")
 
-    def send_message() -> None:
-        try:
-            print(f"SMTP_HOST={host}")
-            print(f"SMTP_PORT={port}")
-            print(f"SMTP_USERNAME={username}")
-            print(f"SMTP_PASSWORD={password}")
-            print(f"SMTP_FROM={sender}")
-            print(f"SMTP_TO={email}")
-            print(f"SMTP_CONTENT={message.get_content()}")
-            print(f"SMTP_SERVER={host}:{port}")
-            print(f"SMTP_MESSAGE={message}")
+#     def send_message() -> None:
+#         try:
+#             print(f"SMTP_HOST={host}")
+#             print(f"SMTP_PORT={port}")
+#             print(f"SMTP_USERNAME={username}")
+#             print(f"SMTP_PASSWORD={password}")
+#             print(f"SMTP_FROM={sender}")
+#             print(f"SMTP_TO={email}")
+#             print(f"SMTP_CONTENT={message.get_content()}")
+#             print(f"SMTP_SERVER={host}:{port}")
+#             print(f"SMTP_MESSAGE={message}")
             
-            with smtplib.SMTP(host, port, timeout=5) as connection:
-                print("Connected to SMTP")
-                connection.starttls()
-                print("Started TLS")
-                if username and password:
-                    connection.login(username, password)
-                    print("Logged in")
-                connection.send_message(message)
-                print("Email sent successfully")
-        except Exception as error:
-            print("SMTP ERROR:", repr(error))
-            raise RuntimeError(f"SMTP delivery failed: {error}") from error
-        except smtplib.SMTPAuthenticationError as error:
-            raise RuntimeError("SMTP authentication failed; check the email and app password") from error
-        except smtplib.SMTPRecipientsRefused as error:
-            raise RuntimeError("The recipient email address was refused by the SMTP server") from error
-        except (OSError, smtplib.SMTPException) as error:
-            print("SMTP ERROR:", repr(error))
-            raise RuntimeError(f"SMTP delivery failed: {error}") from error
+#             with smtplib.SMTP(host, port, timeout=5) as connection:
+#                 print("Connected to SMTP")
+#                 connection.starttls()
+#                 print("Started TLS")
+#                 if username and password:
+#                     connection.login(username, password)
+#                     print("Logged in")
+#                 connection.send_message(message)
+#                 print("Email sent successfully")
+#         except Exception as error:
+#             print("SMTP ERROR:", repr(error))
+#             raise RuntimeError(f"SMTP delivery failed: {error}") from error
+#         except smtplib.SMTPAuthenticationError as error:
+#             raise RuntimeError("SMTP authentication failed; check the email and app password") from error
+#         except smtplib.SMTPRecipientsRefused as error:
+#             raise RuntimeError("The recipient email address was refused by the SMTP server") from error
+#         except (OSError, smtplib.SMTPException) as error:
+#             print("SMTP ERROR:", repr(error))
+#             raise RuntimeError(f"SMTP delivery failed: {error}") from error
 
-    await to_thread(send_message)
+#     await to_thread(send_message)
 
+import requests
+from asyncio import to_thread
+import os
 
+async def send_otp_email(email: str, code: str) -> None:
+    api_key = os.getenv("RESEND_API_KEY")
+
+    if not api_key:
+        raise RuntimeError("RESEND_API_KEY not configured")
+
+    payload = {
+        "from": "onboarding@resend.dev",
+        "to": [email],
+        "subject": "Your chat verification code",
+        "text": f"Your chat verification code is {code}. It expires in 5 minutes."
+    }
+
+    def send():
+        response = requests.post(
+            "https://api.resend.com/emails",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json"
+            },
+            json=payload,
+            timeout=10
+        )
+
+        print("RESEND STATUS:", response.status_code)
+        print("RESEND RESPONSE:", response.text)
+
+        if response.status_code >= 400:
+            raise RuntimeError(response.text)
+
+    await to_thread(send)
 def create_access_token(user: dict) -> str:
     payload = {
         "sub": str(user["id"]),
