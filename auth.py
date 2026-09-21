@@ -101,7 +101,7 @@ async def send_otp_email(email: str, code: str) -> None:
             print(f"SMTP_SERVER={host}:{port}")
             print(f"SMTP_MESSAGE={message}")
             
-            with smtplib.SMTP(host, port) as connection:
+            with smtplib.SMTP(host, port, timeout=5) as connection:
                 print("Connected to SMTP")
                 connection.starttls()
                 print("Started TLS")
