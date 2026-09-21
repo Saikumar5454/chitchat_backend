@@ -91,11 +91,28 @@ async def send_otp_email(email: str, code: str) -> None:
 
     def send_message() -> None:
         try:
+            print(f"SMTP_HOST={host}")
+            print(f"SMTP_PORT={port}")
+            print(f"SMTP_USERNAME={username}")
+            print(f"SMTP_PASSWORD={password}")
+            print(f"SMTP_FROM={sender}")
+            print(f"SMTP_TO={email}")
+            print(f"SMTP_CONTENT={message.get_content()}")
+            print(f"SMTP_SERVER={host}:{port}")
+            print(f"SMTP_MESSAGE={message}")
+            
             with smtplib.SMTP(host, port) as connection:
+                print("Connected to SMTP")
                 connection.starttls()
+                print("Started TLS")
                 if username and password:
                     connection.login(username, password)
+                    print("Logged in")
                 connection.send_message(message)
+                print("Email sent successfully")
+        except Exception as error:
+            print("SMTP ERROR:", repr(error))
+            raise RuntimeError(f"SMTP delivery failed: {error}") from error
         except smtplib.SMTPAuthenticationError as error:
             raise RuntimeError("SMTP authentication failed; check the email and app password") from error
         except smtplib.SMTPRecipientsRefused as error:
