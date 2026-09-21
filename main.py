@@ -99,6 +99,7 @@ async def request_otp(request: EmailRequest) -> dict:
 
     if smtp_is_configured():
         try:
+            print(f"Sendingggg OTP email to {email} with code {code}")
             await send_otp_email(email, code)
         
         except Exception as error:
@@ -117,7 +118,8 @@ async def request_otp(request: EmailRequest) -> dict:
             }
             # raise HTTPException(status_code=503, detail=str(error))
         return {"message": "OTP sent"}
-
+    else:
+        print(f"SMTP not configuredddd. Development OTP for {email}: {code}")
     if os.getenv("ENVIRONMENT", "development") != "production":
         print(f"Development OTP for {email}: {code}")
         return {"message": "OTP generated", "dev_code": code}
